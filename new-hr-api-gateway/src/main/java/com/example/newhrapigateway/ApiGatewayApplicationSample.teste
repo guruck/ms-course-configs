@@ -1,0 +1,59 @@
+package com.example.newhrapigateway;
+
+import org.springframework.boot.SpringApplication;
+//import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import reactor.core.publisher.Mono;
+
+@EnableDiscoveryClient
+@SpringBootApplication
+//@EnableAutoConfiguration
+public class ApiGatewayApplicationSample {
+	
+	public static final String HTTP_HTTPBIN_ORG = "http://httpbin.org";
+	public static final String ACCEPT = "accept";
+	public static final String TEXT_HTML = "text/html";
+	
+	public static void main(String[] args) {
+		SpringApplication.run(ApiGatewayApplicationSample.class, args);
+	}
+
+	@Bean
+	public RouteLocator myRoutes(RouteLocatorBuilder builder) {
+		return builder.routes()
+				.route(p -> p
+						.path("/get")
+						.filters(f -> f.addRequestHeader("Hello", "injetando header"))
+						.uri(HTTP_HTTPBIN_ORG + ":80"))
+				.route(p -> p
+						.host("*.cofeeandit.com.br")
+						.filters(f -> f.addRequestHeader(ACCEPT, "application/json"))
+						.uri(HTTP_HTTPBIN_ORG + "/json"))
+				.route(p -> p
+						.path("/html")
+						.filters(f -> f.addRequestHeader(ACCEPT, TEXT_HTML))
+						.uri(HTTP_HTTPBIN_ORG + "/html"))
+//				.route(p -> p
+//						.host("*.hystrix.com")
+//						.filters(f -> f.hystrix(config -> config
+//								.setName("mycmd")
+//								.setFallbackUri("forward:/fallback")))
+//						.uri("http://cofeeandit.com.br"))
+				.route(p -> p
+						.path("/image")
+						.filters(f -> f.addRequestHeader(ACCEPT, "image/webp"))
+						.uri(HTTP_HTTPBIN_ORG + "/image"))
+				.build();
+	}
+	
+	@RequestMapping(value = "/fallback", produces = MediaType.TEXT_HTML_VALUE)
+	public Mono<String> fallback(){ return Mono.just("fallback"); }
+	
+}

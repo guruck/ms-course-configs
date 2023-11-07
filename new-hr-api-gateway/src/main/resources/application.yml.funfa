@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: new-hr-api-gateway
+
+  cloud:
+    gateway:
+      routes:
+        - id: NEW-HR-WORKER
+          uri: lb://new-hr-worker
+          predicates:
+            - Path=/new-hr-worker/**
+          filters:
+            - StripPrefix=1
+
+        - id: NEW-HR-PAYROLL
+          uri: lb://new-hr-payroll
+          predicates:
+            - Path=/new-hr-payroll/**
+          filters:
+            - StripPrefix=1
+
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 1s
+server:
+  port: 8765
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
